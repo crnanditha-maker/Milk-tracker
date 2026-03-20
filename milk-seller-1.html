@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milk Seller — Supplier Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFFDF7;
+  --surface: #FFFFFF;
+  --surface2: #FAF7F0;
+  --border: #E8DFC8;
+  --border2: #F0E8D5;
+  --text: #1A1208;
+  --muted: #8A7A5A;
+  --amber: #D97706;
+  --amber-light: #FEF3C7;
+  --amber-dim: #78350F;
+  --teal: #0D9488;
+  --teal-light: #CCFBF1;
+  --red: #DC2626;
+  --red-light: #FEE2E2;
+  --indigo: #4F46E5;
+  --indigo-light: #EEF2FF;
+  --green: #16A34A;
+  --green-light: #DCFCE7;
+  --orange: #EA580C;
+  --orange-light: #FFEDD5;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;}
+
+/* Hero profile bar */
+.profile-hero{background:linear-gradient(135deg,#92400E 0%,#D97706 50%,#F59E0B 100%);color:white;padding:0;position:relative;overflow:hidden;}
+.profile-hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+.profile-inner{position:relative;max-width:1100px;margin:0 auto;padding:2rem 2rem 1.5rem;}
+.profile-top{display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.profile-avatar{width:72px;height:72px;background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);border:2px solid rgba(255,255,255,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:white;letter-spacing:-1px;flex-shrink:0;}
+.profile-info{flex:1;}
+.seller-name-display{font-size:1.8rem;font-weight:900;line-height:1;letter-spacing:-0.5px;}
+.seller-id-display{font-family:'JetBrains Mono',monospace;font-size:0.8rem;opacity:0.8;margin-top:0.3rem;display:flex;align-items:center;gap:0.5rem;}
+.id-chip{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:6px;padding:0.15rem 0.5rem;font-size:0.75rem;}
+.role-chip{background:rgba(0,0,0,0.15);border-radius:6px;padding:0.15rem 0.6rem;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;}
+.profile-edit-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:var(--radius);padding:0.5rem 1rem;color:white;font-family:'Nunito',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;backdrop-filter:blur(4px);}
+.profile-edit-btn:hover{background:rgba(255,255,255,0.25);}
+.profile-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:rgba(255,255,255,0.15);border-radius:var(--radius);overflow:hidden;}
+.p-stat{background:rgba(255,255,255,0.1);padding:0.9rem 1.1rem;backdrop-filter:blur(4px);}
+.p-stat-label{font-size:0.62rem;opacity:0.75;letter-spacing:0.1em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:0.25rem;}
+.p-stat-val{font-size:1.3rem;font-weight:800;}
+
+/* Container */
+.container{max-width:1100px;margin:0 auto;padding:2rem;}
+
+/* Settings strip */
+.settings-strip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;box-shadow:var(--shadow);}
+.strip-item{display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;}
+.strip-label{font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--muted);white-space:nowrap;}
+.input-light{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:0.45rem 0.75rem;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.88rem;outline:none;transition:border-color 0.2s;}
+.input-light:focus{border-color:var(--amber);}
+.unit-toggle{display:flex;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;}
+.unit-btn{padding:0.4rem 1rem;border:none;background:var(--surface2);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:0.78rem;cursor:pointer;transition:all 0.2s;}
+.unit-btn.active{background:var(--amber);color:white;font-weight:600;}
+.sync-badge{margin-left:auto;display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--teal);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+
+/* Cards */
+.cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;box-shadow:var(--shadow);transition:transform 0.2s,box-shadow 0.2s;}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.card-icon{font-size:1.3rem;margin-bottom:0.5rem;}
+.card-label{font-size:0.6rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.25rem;}
+.card-val{font-size:1.4rem;font-weight:800;line-height:1;}
+.card-val.amber{color:var(--amber);}
+.card-val.teal{color:var(--teal);}
+.card-val.green{color:var(--green);}
+.card-val.red{color:var(--red);}
+.card-val.indigo{color:var(--indigo);}
+.card-sub{font-size:0.67rem;color:var(--muted);margin-top:0.25rem;}
+
+/* Entry form card */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem;box-shadow:var(--shadow);}
+.form-card-title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.5rem;}
+.session-tabs{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;width:fit-content;margin-bottom:1.2rem;}
+.sess-tab{padding:0.5rem 1.4rem;border:none;background:var(--surface2);color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.sess-tab.morning.active{background:var(--orange);color:white;}
+.sess-tab.evening.active{background:var(--indigo);color:white;}
+.form-row{display:flex;gap:0.8rem;align-items:flex-end;flex-wrap:wrap;}
+.field{display:flex;flex-direction:column;gap:0.3rem;}
+.field label{font-size:0.63rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+.btn-add{background:var(--amber);color:white;border:none;border-radius:10px;padding:0.6rem 1.4rem;font-family:'Nunito',sans-serif;font-size:0.88rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(217,119,6,0.25);white-space:nowrap;}
+.btn-add:hover{background:#B45309;transform:translateY(-1px);}
+
+/* Payment card */
+.payment-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem;box-shadow:var(--shadow);}
+.pay-row{display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;}
+.pay-chip{flex:1;min-width:120px;border-radius:12px;padding:0.9rem 1.1rem;text-align:center;}
+.pay-chip.bill{background:var(--indigo-light);border:1px solid rgba(79,70,229,0.2);}
+.pay-chip.paid{background:var(--green-light);border:1px solid rgba(22,163,74,0.2);}
+.pay-chip.due{background:var(--red-light);border:1px solid rgba(220,38,38,0.2);}
+.pay-chip-label{font-size:0.58rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:0.25rem;}
+.pay-chip-val{font-size:1.1rem;font-weight:800;}
+.pay-chip.bill .pay-chip-val{color:var(--indigo);}
+.pay-chip.paid .pay-chip-val{color:var(--green);}
+.pay-chip.due  .pay-chip-val{color:var(--red);}
+.pay-form{display:flex;gap:0.7rem;flex-wrap:wrap;align-items:flex-end;}
+.btn-pay{background:var(--green);color:white;border:none;border-radius:10px;padding:0.6rem 1.2rem;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.btn-pay:hover{background:#15803D;}
+.pay-history{margin-top:1rem;}
+.pay-item{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0.8rem;background:var(--surface2);border:1px solid var(--border);border-radius:9px;margin-bottom:0.35rem;font-size:0.78rem;}
+.pay-left{display:flex;gap:0.6rem;align-items:center;}
+.pay-date{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:0.7rem;}
+.pay-note{color:var(--text);}
+.pay-amt{font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700;}
+.btn-del-pay{background:none;border:none;cursor:pointer;color:var(--red);opacity:0.45;font-size:0.85rem;padding:0.15rem 0.35rem;border-radius:5px;transition:all 0.15s;}
+.btn-del-pay:hover{opacity:1;background:var(--red-light);}
+
+/* Records table */
+.records-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;margin-bottom:1.5rem;}
+.records-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.7rem;}
+.records-title{font-size:1rem;font-weight:800;}
+.filter-bar{display:flex;gap:0.35rem;}
+.filter-pill{padding:0.33rem 0.75rem;border:1.5px solid var(--border);border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;cursor:pointer;background:var(--surface2);color:var(--muted);transition:all 0.15s;}
+.filter-pill.active{background:var(--amber-light);border-color:var(--amber);color:var(--amber);}
+.btn-clear{padding:0.33rem 0.75rem;border:1.5px solid var(--red-light);border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;cursor:pointer;background:none;color:var(--red);transition:all 0.15s;}
+.btn-clear:hover{background:var(--red-light);}
+table{width:100%;border-collapse:collapse;font-size:0.83rem;}
+thead tr{border-bottom:1.5px solid var(--border);}
+th{font-size:0.6rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;padding:0.65rem 1rem;text-align:left;font-weight:500;}
+tbody tr{border-bottom:1px solid var(--border2);transition:background 0.12s;}
+tbody tr:hover{background:var(--surface2);}
+td{padding:0.65rem 1rem;vertical-align:middle;}
+.sess-badge{display:inline-flex;align-items:center;gap:0.25rem;border-radius:20px;padding:0.17rem 0.55rem;font-size:0.68rem;font-family:'JetBrains Mono',monospace;}
+.sess-badge.morning{background:var(--orange-light);color:var(--orange);border:1px solid rgba(234,88,12,0.25);}
+.sess-badge.evening{background:var(--indigo-light);color:var(--indigo);border:1px solid rgba(79,70,229,0.25);}
+.day-hdr td{background:var(--surface2);color:var(--muted);font-size:0.68rem;font-family:'JetBrains Mono',monospace;padding:0.36rem 1rem;letter-spacing:0.05em;font-weight:700;}
+.day-sub td{font-size:0.74rem;font-weight:700;color:var(--teal);padding:0.38rem 1rem;border-top:1px dashed var(--border);}
+.grand-row td{font-size:0.82rem;font-weight:800;color:var(--text);padding:0.7rem 1rem;border-top:2px solid var(--border);background:var(--surface2);}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--red);opacity:0.4;font-size:0.83rem;padding:0.18rem 0.38rem;border-radius:5px;transition:all 0.15s;}
+.btn-del:hover{opacity:1;background:var(--red-light);}
+.empty-state{text-align:center;padding:2.5rem;color:var(--muted);}
+.empty-icon{font-size:2.5rem;margin-bottom:0.7rem;}
+.empty-text{font-size:0.82rem;}
+
+/* Sync info */
+.sync-info-card{background:var(--teal-light);border:1px solid rgba(13,148,136,0.25);border-radius:var(--radius);padding:1rem 1.2rem;margin-bottom:1.5rem;font-size:0.78rem;color:var(--teal);display:flex;align-items:flex-start;gap:0.6rem;}
+.sync-info-icon{font-size:1.1rem;flex-shrink:0;}
+
+/* Profile setup modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;backdrop-filter:blur(4px);}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;width:100%;max-width:420px;box-shadow:var(--shadow-lg);animation:mIn 0.25s ease;}
+@keyframes mIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.modal-title{font-size:1.2rem;font-weight:800;margin-bottom:0.4rem;}
+.modal-sub{font-size:0.8rem;color:var(--muted);margin-bottom:1.5rem;}
+.modal-field{display:flex;flex-direction:column;gap:0.35rem;margin-bottom:1rem;}
+.modal-field label{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+.btn-setup{width:100%;padding:0.75rem;background:var(--amber);border:none;border-radius:var(--radius);color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;cursor:pointer;margin-top:0.5rem;transition:all 0.2s;}
+.btn-setup:hover{background:#B45309;}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);border-radius:var(--radius);padding:0.7rem 1.2rem;font-size:0.82rem;color:white;box-shadow:var(--shadow-lg);transform:translateY(80px);opacity:0;transition:all 0.3s;z-index:200;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@media(max-width:600px){
+  .form-row,.pay-form{flex-direction:column;}
+  .cards-row{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Profile setup overlay (shown if no profile set) -->
+<div class="overlay" id="profileModal">
+  <div class="modal">
+    <div class="modal-title">🥛 Welcome, Seller!</div>
+    <div class="modal-sub">Set up your seller profile to get started. Your buyers will see this information.</div>
+    <div class="modal-field">
+      <label>Your Name / Dairy Name</label>
+      <input class="input-light" type="text" id="setupName" placeholder="e.g. Rajan Dairy" maxlength="40">
+    </div>
+    <div class="modal-field">
+      <label>Seller ID (must match buyer's app)</label>
+      <input class="input-light" type="text" id="setupId" placeholder="e.g. SEL-001" maxlength="20">
+    </div>
+    <div class="modal-field">
+      <label>Phone (optional)</label>
+      <input class="input-light" type="text" id="setupPhone" placeholder="9876543210" maxlength="15">
+    </div>
+    <button class="btn-setup" onclick="saveProfile()">Set Up My Dashboard →</button>
+  </div>
+</div>
+
+<!-- Profile Hero -->
+<div class="profile-hero">
+  <div class="profile-inner">
+    <div class="profile-top">
+      <div class="profile-avatar" id="heroAvatar">?</div>
+      <div class="profile-info">
+        <div class="seller-name-display" id="heroName">Loading...</div>
+        <div class="seller-id-display">
+          <span class="id-chip" id="heroId">ID: —</span>
+          <span class="role-chip">Milk Seller</span>
+          <span id="heroPhone" style="opacity:0.7;font-size:0.75rem;"></span>
+        </div>
+      </div>
+      <button class="profile-edit-btn" onclick="editProfile()">✏️ Edit Profile</button>
+    </div>
+    <div class="profile-stats">
+      <div class="p-stat">
+        <div class="p-stat-label">☀️ Month Morning</div>
+        <div class="p-stat-val" id="hMorning">0</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-label">🌙 Month Evening</div>
+        <div class="p-stat-val" id="hEvening">0</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-label">📦 Month Total</div>
+        <div class="p-stat-val" id="hTotal">0</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-label">💰 Month Bill</div>
+        <div class="p-stat-val" id="hBill">₹0</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-label">✅ Paid</div>
+        <div class="p-stat-val" id="hPaid">₹0</div>
+      </div>
+      <div class="p-stat">
+        <div class="p-stat-label">⚠️ Balance</div>
+        <div class="p-stat-val" id="hDue">₹0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Sync Info -->
+  <div class="sync-info-card">
+    <span class="sync-info-icon">🔗</span>
+    <span>Your data is shared with your buyer's app in real-time via the integration layer. Make sure your <strong>Seller ID</strong> matches what your buyer has registered. <span id="syncStatus" style="font-weight:700;">Checking sync...</span></span>
+  </div>
+
+  <!-- Settings strip -->
+  <div class="settings-strip">
+    <div class="strip-item">
+      <span class="strip-label">Price per unit (₹)</span>
+      <input class="input-light" type="number" id="priceInput" value="60" min="0" step="0.5" style="width:90px;">
+    </div>
+    <div class="strip-item">
+      <span class="strip-label">Unit</span>
+      <div class="unit-toggle">
+        <button class="unit-btn active" id="unitL" onclick="setUnit('L',this)">Litre</button>
+        <button class="unit-btn" id="unitKg" onclick="setUnit('kg',this)">Kg</button>
+      </div>
+    </div>
+    <div class="sync-badge">
+      <span class="sync-dot"></span> Synced with buyer app
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="cards-row">
+    <div class="card">
+      <div class="card-icon">☀️</div>
+      <div class="card-label">Month Morning</div>
+      <div class="card-val amber" id="cMorning">0</div>
+      <div class="card-sub" id="cMorningU">L total</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌙</div>
+      <div class="card-label">Month Evening</div>
+      <div class="card-val indigo" id="cEvening">0</div>
+      <div class="card-sub" id="cEveningU">L total</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <div class="card-label">Month Total</div>
+      <div class="card-val teal" id="cTotal">0</div>
+      <div class="card-sub" id="cTotalU">L supplied</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <div class="card-label">Month Bill</div>
+      <div class="card-val amber" id="cBill">₹0</div>
+      <div class="card-sub">Revenue</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">✅</div>
+      <div class="card-label">Received</div>
+      <div class="card-val green" id="cPaid">₹0</div>
+      <div class="card-sub">Payments in</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏳</div>
+      <div class="card-label">Pending</div>
+      <div class="card-val red" id="cDue">₹0</div>
+      <div class="card-sub">Outstanding</div>
+    </div>
+  </div>
+
+  <!-- Entry form -->
+  <div class="form-card">
+    <div class="form-card-title">📝 Add Delivery Entry</div>
+    <div class="session-tabs" id="sessionTabs">
+      <button class="sess-tab morning active" onclick="setSess('morning',this)">☀️ Morning</button>
+      <button class="sess-tab evening"        onclick="setSess('evening',this)">🌙 Evening</button>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Date</label>
+        <input class="input-light" type="date" id="eDate" style="width:150px;">
+      </div>
+      <div class="field">
+        <label>Qty (<span id="unitLabel">L</span>)</label>
+        <input class="input-light" type="number" id="eQty" placeholder="1.5" min="0" step="0.1" style="width:100px;" onkeydown="if(event.key==='Enter')addEntry()">
+      </div>
+      <button class="btn-add" onclick="addEntry()">+ Log Delivery</button>
+    </div>
+  </div>
+
+  <!-- Payment tracker -->
+  <div class="payment-card">
+    <div class="form-card-title" style="margin-bottom:0.8rem;">💳 Payment Received Tracker</div>
+    <div class="pay-row">
+      <div class="pay-chip bill"><div class="pay-chip-label">Month Bill</div><div class="pay-chip-val" id="payBill">₹0</div></div>
+      <div class="pay-chip paid"><div class="pay-chip-label">Received</div><div class="pay-chip-val" id="payReceived">₹0</div></div>
+      <div class="pay-chip due"><div class="pay-chip-label">Pending</div><div class="pay-chip-val" id="payPending">₹0</div></div>
+    </div>
+    <div class="pay-form">
+      <div class="field">
+        <label>Date</label>
+        <input class="input-light" type="date" id="pDate" style="width:148px;">
+      </div>
+      <div class="field">
+        <label>Amount (₹)</label>
+        <input class="input-light" type="number" id="pAmt" placeholder="500" style="width:110px;" onkeydown="if(event.key==='Enter')addPayment()">
+      </div>
+      <div class="field">
+        <label>Note</label>
+        <input class="input-light" type="text" id="pNote" placeholder="Cash / UPI" style="width:130px;">
+      </div>
+      <button class="btn-pay" onclick="addPayment()">✓ Record</button>
+    </div>
+    <div class="pay-history" id="payHistory"></div>
+  </div>
+
+  <!-- Records -->
+  <div class="records-card">
+    <div class="records-header">
+      <div class="records-title">📋 Delivery Records</div>
+      <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+        <div class="filter-bar">
+          <button class="filter-pill" onclick="setFilter('week',this)">Week</button>
+          <button class="filter-pill active" onclick="setFilter('month',this)">Month</button>
+          <button class="filter-pill" onclick="setFilter('all',this)">All</button>
+        </div>
+        <button class="btn-clear" onclick="clearAll()">🗑 Clear</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Day</th><th>Session</th><th>Quantity</th><th>Rate</th><th>Amount</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty-state" style="display:none;">
+        <div class="empty-icon">🥛</div>
+        <div class="empty-text">No delivery entries yet. Log your first delivery above!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const SHARED_KEY = 'milkSharedData';
+const SELLER_KEY = 'sellerProfile';
+
+let profile     = JSON.parse(localStorage.getItem(SELLER_KEY) || 'null');
+let entries     = JSON.parse(localStorage.getItem('sellerEntries')  || '[]');
+let payments    = JSON.parse(localStorage.getItem('sellerPayments') || '[]');
+let currentUnit = localStorage.getItem('sellerUnit') || 'L';
+let currentSess = 'morning';
+let currentFilter='month';
+
+/* ── Init ── */
+document.getElementById('eDate').value = todayStr();
+document.getElementById('pDate').value = todayStr();
+if(currentUnit==='kg'){ document.getElementById('unitL').classList.remove('active'); document.getElementById('unitKg').classList.add('active'); document.getElementById('unitLabel').textContent='kg'; }
+document.getElementById('priceInput').addEventListener('input', renderAll);
+if(!profile){ document.getElementById('profileModal').style.display='flex'; }
+else { renderProfile(); renderAll(); checkSync(); }
+
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function getPrice(){ return parseFloat(document.getElementById('priceInput').value)||0; }
+function saveAll(){
+  localStorage.setItem('sellerEntries',  JSON.stringify(entries));
+  localStorage.setItem('sellerPayments', JSON.stringify(payments));
+  publishToShared();
+}
+function setUnit(u,btn){
+  currentUnit=u;
+  localStorage.setItem('sellerUnit',u);
+  document.querySelectorAll('.unit-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('unitLabel').textContent=u;
+  renderAll();
+}
+function setSess(s,btn){
+  currentSess=s;
+  document.querySelectorAll('.sess-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ── Profile ── */
+function saveProfile(){
+  const name=document.getElementById('setupName').value.trim();
+  const id=document.getElementById('setupId').value.trim().toUpperCase();
+  const phone=document.getElementById('setupPhone').value.trim();
+  if(!name){ toast('Enter your name'); return; }
+  if(!id)  { toast('Enter your seller ID'); return; }
+  profile={name,id,phone,color:'#D97706'};
+  localStorage.setItem(SELLER_KEY,JSON.stringify(profile));
+  document.getElementById('profileModal').style.display='none';
+  renderProfile(); renderAll(); checkSync();
+  toast('✓ Profile saved! Welcome, '+name);
+}
+function editProfile(){
+  if(profile){
+    document.getElementById('setupName').value=profile.name;
+    document.getElementById('setupId').value=profile.id;
+    document.getElementById('setupPhone').value=profile.phone||'';
+  }
+  document.getElementById('profileModal').style.display='flex';
+}
+function initials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function renderProfile(){
+  if(!profile) return;
+  document.getElementById('heroAvatar').textContent=initials(profile.name);
+  document.getElementById('heroName').textContent=profile.name;
+  document.getElementById('heroId').textContent='ID: '+profile.id;
+  document.getElementById('heroPhone').textContent=profile.phone?'📞 '+profile.phone:'';
+  document.title='Milk Seller — '+profile.name;
+}
+
+/* ── Sync integration ── */
+function publishToShared(){
+  if(!profile) return;
+  // Read buyer's shared data and update seller's entries/payments within it
+  let shared=JSON.parse(localStorage.getItem(SHARED_KEY)||'{}');
+  if(!shared.sellers) return; // Buyer app not set up yet
+  const sellerIdx=shared.sellers.findIndex(s=>s.id===profile.id);
+  if(sellerIdx===-1){ document.getElementById('syncStatus').textContent='⚠️ ID not found in buyer app. Ask buyer to add you.'; return; }
+  // Seller entries/payments override buyer for their own ID
+  shared.entries[profile.id]=entries;
+  shared.payments[profile.id]=payments;
+  shared.updatedAt=Date.now();
+  localStorage.setItem(SHARED_KEY,JSON.stringify(shared));
+  document.getElementById('syncStatus').textContent='✓ Synced '+new Date().toLocaleTimeString();
+}
+function checkSync(){
+  if(!profile) return;
+  const shared=JSON.parse(localStorage.getItem(SHARED_KEY)||'{}');
+  if(!shared.sellers){
+    document.getElementById('syncStatus').textContent='⏳ Buyer app not connected yet.';
+    return;
+  }
+  const found=shared.sellers.find(s=>s.id===profile.id);
+  if(found){
+    document.getElementById('syncStatus').textContent='✓ Buyer connected · ID matched';
+    // Pull buyer's price if available
+    if(shared.price){ document.getElementById('priceInput').value=shared.price; }
+    if(shared.unit){ setUnit(shared.unit, document.getElementById(shared.unit==='L'?'unitL':'unitKg')); }
+    // Pull buyer's entries for this seller if seller has none locally
+    if(entries.length===0 && shared.entries && shared.entries[profile.id]){
+      entries=shared.entries[profile.id];
+    }
+    if(payments.length===0 && shared.payments && shared.payments[profile.id]){
+      payments=shared.payments[profile.id];
+    }
+    renderAll();
+  } else {
+    document.getElementById('syncStatus').textContent='⚠️ Not found in buyer\'s list. Ask buyer to add Seller ID: '+profile.id;
+  }
+}
+
+/* ── Add entry ── */
+function addEntry(){
+  const date=document.getElementById('eDate').value;
+  const qty=parseFloat(document.getElementById('eQty').value);
+  if(!date){ toast('Select a date'); return; }
+  if(!qty||qty<=0){ toast('Enter valid quantity'); return; }
+  const dup=entries.find(e=>e.date===date&&e.session===currentSess);
+  if(dup){ if(!confirm(`Replace existing ${currentSess} entry for ${date}?`)) return; entries=entries.filter(e=>!(e.date===date&&e.session===currentSess)); }
+  entries.unshift({id:Date.now(),date,qty,session:currentSess,price:getPrice(),unit:currentUnit});
+  saveAll(); document.getElementById('eQty').value='';
+  toast(`${currentSess==='morning'?'☀️ Morning':'🌙 Evening'} delivery logged!`);
+  renderAll();
+}
+function deleteEntry(id){ entries=entries.filter(e=>e.id!==id); saveAll(); renderAll(); toast('Entry deleted'); }
+
+/* ── Payment ── */
+function addPayment(){
+  const date=document.getElementById('pDate').value,amount=parseFloat(document.getElementById('pAmt').value),note=document.getElementById('pNote').value.trim();
+  if(!date||!amount||amount<=0){ toast('Enter valid payment details'); return; }
+  payments.unshift({id:Date.now(),date,amount,note});
+  saveAll(); document.getElementById('pAmt').value=''; document.getElementById('pNote').value='';
+  toast('✓ Payment recorded'); renderAll();
+}
+function deletePayment(id){ payments=payments.filter(p=>p.id!==id); saveAll(); renderAll(); toast('Payment removed'); }
+function clearAll(){ if(!confirm('Clear ALL delivery entries?')) return; entries=[]; saveAll(); renderAll(); toast('Entries cleared'); }
+
+/* ── Helpers ── */
+function thisMonth(list){
+  const now=new Date();
+  return list.filter(e=>{ const d=new Date(e.date+'T00:00:00'); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); });
+}
+function thisWeek(list){
+  const now=new Date(),start=new Date(now);
+  start.setDate(now.getDate()-now.getDay()); start.setHours(0,0,0,0);
+  return list.filter(e=>new Date(e.date+'T00:00:00')>=start);
+}
+function fmtDate(s){ return new Date(s+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+function setFilter(f,btn){ currentFilter=f; document.querySelectorAll('.filter-pill').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderAll(); }
+
+/* ── Render ── */
+function renderAll(){
+  const price=getPrice(), unit=currentUnit;
+  const mE=thisMonth(entries), mP=thisMonth(payments);
+  const mMorning=mE.filter(e=>e.session==='morning').reduce((s,e)=>s+e.qty,0);
+  const mEvening=mE.filter(e=>e.session==='evening').reduce((s,e)=>s+e.qty,0);
+  const mTotal=mMorning+mEvening, mBill=mTotal*price;
+  const mPaid=mP.reduce((s,p)=>s+p.amount,0), mDue=Math.max(0,mBill-mPaid);
+
+  // Hero stats
+  ['hMorning','cMorning'].forEach(id=>document.getElementById(id).textContent=+mMorning.toFixed(2));
+  ['hEvening','cEvening'].forEach(id=>document.getElementById(id).textContent=+mEvening.toFixed(2));
+  ['hTotal','cTotal'].forEach(id=>document.getElementById(id).textContent=+mTotal.toFixed(2));
+  ['hBill','cBill','payBill'].forEach(id=>document.getElementById(id).textContent='₹'+mBill.toFixed(2));
+  ['hPaid','cPaid','payReceived'].forEach(id=>document.getElementById(id).textContent='₹'+mPaid.toFixed(2));
+  ['hDue','cDue','payPending'].forEach(id=>document.getElementById(id).textContent='₹'+mDue.toFixed(2));
+  document.getElementById('cMorningU').textContent=unit+' total';
+  document.getElementById('cEveningU').textContent=unit+' total';
+  document.getElementById('cTotalU').textContent=unit+' supplied';
+
+  // Payment history
+  const ph=document.getElementById('payHistory');
+  ph.innerHTML=mP.length===0?'' : mP.map(p=>`
+    <div class="pay-item">
+      <div class="pay-left">
+        <span class="pay-date">${fmtDate(p.date)}</span>
+        ${p.note?`<span class="pay-note">${p.note}</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span class="pay-amt">+₹${p.amount.toFixed(2)}</span>
+        <button class="btn-del-pay" onclick="deletePayment(${p.id})">✕</button>
+      </div>
+    </div>`).join('');
+
+  // Table
+  let filtered=[...entries];
+  if(currentFilter==='month') filtered=thisMonth(entries);
+  if(currentFilter==='week')  filtered=thisWeek(entries);
+  const tbody=document.getElementById('tableBody');
+  const empty=document.getElementById('emptyState');
+  if(filtered.length===0){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  const sorted=[...filtered].sort((a,b)=>b.date.localeCompare(a.date)||(a.session==='morning'?-1:1));
+  const groups={};
+  sorted.forEach(e=>{ if(!groups[e.date])groups[e.date]=[]; groups[e.date].push(e); });
+  let html='',gQty=0,gAmt=0;
+  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(date=>{
+    const rows=groups[date],dQty=rows.reduce((s,e)=>s+e.qty,0),dAmt=dQty*price;
+    gQty+=dQty; gAmt+=dAmt;
+    html+=`<tr class="day-hdr"><td colspan="7">📅 ${fmtDate(date)} · ${DAYS[new Date(date+'T00:00:00').getDay()]}</td></tr>`;
+    rows.forEach(e=>{
+      html+=`<tr>
+        <td style="color:var(--muted);font-size:0.78rem;">${fmtDate(e.date)}</td>
+        <td style="color:var(--muted);font-size:0.77rem;">${DAYS[new Date(e.date+'T00:00:00').getDay()]}</td>
+        <td><span class="sess-badge ${e.session}">${e.session==='morning'?'☀️ Morning':'🌙 Evening'}</span></td>
+        <td style="font-weight:700;">${e.qty} <span style="color:var(--muted);font-size:0.72rem;">${e.unit||unit}</span></td>
+        <td style="color:var(--muted);font-size:0.77rem;">₹${price}/${unit}</td>
+        <td style="color:var(--green);font-weight:700;">₹${(e.qty*price).toFixed(2)}</td>
+        <td><button class="btn-del" onclick="deleteEntry(${e.id})">✕</button></td>
+      </tr>`;
+    });
+    if(rows.length>1) html+=`<tr class="day-sub"><td colspan="3" style="padding-left:1.3rem;">Day total</td><td>${+dQty.toFixed(2)} ${unit}</td><td></td><td>₹${dAmt.toFixed(2)}</td><td></td></tr>`;
+  });
+  html+=`<tr class="grand-row"><td colspan="3">TOTAL (${filtered.length} entries)</td><td>${+gQty.toFixed(2)} ${unit}</td><td></td><td>₹${gAmt.toFixed(2)}</td><td></td></tr>`;
+  tbody.innerHTML=html;
+}
+
+/* ── Toast ── */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// Auto-sync check every 5 seconds
+setInterval(checkSync, 5000);
+</script>
+</body>
+</html>

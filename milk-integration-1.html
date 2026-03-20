@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milk Tracker — Integration Data Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0E1A;--surface:#111827;--surface2:#1F2937;--border:#2D3748;
+  --text:#F9FAFB;--muted:#6B7280;--blue:#60A5FA;--green:#34D399;
+  --orange:#FBBF24;--purple:#A78BFA;--red:#F87171;--teal:#2DD4BF;
+  --buyer:#3B82F6;--seller:#F59E0B;--shared:#10B981;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;padding:2rem 1rem;}
+.page{max-width:960px;margin:0 auto;}
+
+/* Header */
+.page-header{text-align:center;margin-bottom:3rem;}
+.page-header h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;background:linear-gradient(135deg,var(--buyer),var(--teal),var(--seller));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+.page-header p{font-size:0.88rem;color:var(--muted);max-width:520px;margin:0 auto;}
+.version-badge{display:inline-flex;align-items:center;gap:0.4rem;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:0.3rem 0.8rem;font-size:0.7rem;font-family:'JetBrains Mono',monospace;color:var(--teal);margin-bottom:1rem;}
+
+/* Apps overview */
+.apps-overview{display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:center;margin-bottom:3rem;background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.app-block{padding:1.8rem;}
+.app-block.buyer{border-right:1px solid var(--border);}
+.app-block.seller{border-left:1px solid var(--border);}
+.app-tag{display:inline-flex;align-items:center;gap:0.4rem;padding:0.25rem 0.7rem;border-radius:20px;font-size:0.7rem;font-family:'JetBrains Mono',monospace;font-weight:500;margin-bottom:0.8rem;}
+.app-tag.buyer{background:rgba(59,130,246,0.15);color:var(--buyer);border:1px solid rgba(59,130,246,0.3);}
+.app-tag.seller{background:rgba(245,158,11,0.15);color:var(--seller);border:1px solid rgba(245,158,11,0.3);}
+.app-name{font-size:1.2rem;font-weight:800;margin-bottom:0.4rem;}
+.app-file{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted);}
+.app-features{margin-top:0.8rem;display:flex;flex-direction:column;gap:0.3rem;}
+.feat{font-size:0.75rem;color:var(--muted);display:flex;align-items:flex-start;gap:0.4rem;}
+.feat::before{content:'›';color:var(--teal);flex-shrink:0;}
+.connector{display:flex;flex-direction:column;align-items:center;gap:0.4rem;padding:1rem;}
+.conn-icon{font-size:1.5rem;}
+.conn-label{font-size:0.62rem;font-family:'JetBrains Mono',monospace;color:var(--shared);text-transform:uppercase;letter-spacing:0.1em;text-align:center;}
+
+/* Flow diagram */
+.section{margin-bottom:2.5rem;}
+.section-title{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1.2rem;display:flex;align-items:center;gap:0.5rem;border-bottom:1px solid var(--border);padding-bottom:0.6rem;}
+.section-title .num{width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--teal);}
+
+/* Flow steps */
+.flow-steps{display:flex;flex-direction:column;gap:0;}
+.step{display:grid;grid-template-columns:48px 1fr;gap:0;}
+.step-line{display:flex;flex-direction:column;align-items:center;}
+.step-dot{width:12px;height:12px;border-radius:50%;border:2px solid;flex-shrink:0;margin-top:4px;}
+.step-dot.buyer{border-color:var(--buyer);background:rgba(59,130,246,0.3);}
+.step-dot.seller{border-color:var(--seller);background:rgba(245,158,11,0.3);}
+.step-dot.shared{border-color:var(--shared);background:rgba(16,185,129,0.3);}
+.step-connector{width:2px;flex:1;margin:4px 0;min-height:20px;}
+.step-connector.buyer{background:linear-gradient(var(--buyer),rgba(59,130,246,0.1));}
+.step-connector.seller{background:linear-gradient(var(--seller),rgba(245,158,11,0.1));}
+.step-connector.shared{background:linear-gradient(var(--shared),rgba(16,185,129,0.1));}
+.step-body{padding:0 0 1.2rem 0.5rem;}
+.step-label{font-size:0.65rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.3rem;}
+.step-label.buyer{color:var(--buyer);}
+.step-label.seller{color:var(--seller);}
+.step-label.shared{color:var(--shared);}
+.step-title{font-size:0.9rem;font-weight:700;margin-bottom:0.3rem;}
+.step-desc{font-size:0.78rem;color:var(--muted);line-height:1.5;}
+.code-block{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:0.8rem 1rem;margin-top:0.6rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--teal);line-height:1.6;overflow-x:auto;}
+.code-comment{color:var(--muted);}
+.code-key{color:var(--purple);}
+.code-val{color:var(--orange);}
+.code-str{color:var(--green);}
+
+/* Data schema */
+.schema-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;}
+.schema-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem;overflow:hidden;}
+.schema-title{font-size:0.72rem;font-family:'JetBrains Mono',monospace;color:var(--teal);margin-bottom:0.7rem;text-transform:uppercase;letter-spacing:0.1em;}
+.schema-field{display:flex;justify-content:space-between;align-items:center;padding:0.3rem 0;border-bottom:1px solid var(--border);font-size:0.75rem;}
+.schema-field:last-child{border-bottom:none;}
+.field-name{font-family:'JetBrains Mono',monospace;color:var(--purple);}
+.field-type{font-family:'JetBrains Mono',monospace;color:var(--orange);font-size:0.68rem;}
+.field-desc{color:var(--muted);font-size:0.7rem;margin-left:0.5rem;}
+
+/* LocalStorage keys table */
+.keys-table{width:100%;border-collapse:collapse;font-size:0.8rem;}
+.keys-table th{font-size:0.62rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;padding:0.6rem 0.8rem;text-align:left;border-bottom:1px solid var(--border);font-weight:500;}
+.keys-table td{padding:0.65rem 0.8rem;border-bottom:1px solid var(--border2,#1F2937);vertical-align:top;}
+.keys-table tr:last-child td{border-bottom:none;}
+.key-name{font-family:'JetBrains Mono',monospace;color:var(--blue);font-size:0.76rem;}
+.key-owner{border-radius:20px;padding:0.15rem 0.5rem;font-size:0.65rem;font-family:'JetBrains Mono',monospace;display:inline-flex;}
+.key-owner.buyer{background:rgba(59,130,246,0.15);color:var(--buyer);}
+.key-owner.seller{background:rgba(245,158,11,0.15);color:var(--seller);}
+.key-owner.both{background:rgba(16,185,129,0.15);color:var(--shared);}
+.key-desc{font-size:0.75rem;color:var(--muted);}
+
+/* Sync flow */
+.sync-flow{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;display:grid;grid-template-columns:1fr 60px 1fr;gap:0.5rem;align-items:center;}
+.sf-box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+.sf-title{font-size:0.68rem;font-family:'JetBrains Mono',monospace;font-weight:600;margin-bottom:0.6rem;}
+.sf-title.buyer{color:var(--buyer);}
+.sf-title.seller{color:var(--seller);}
+.sf-title.shared{color:var(--shared);}
+.sf-item{font-size:0.72rem;color:var(--muted);padding:0.2rem 0;display:flex;align-items:center;gap:0.3rem;}
+.sf-item::before{content:'·';color:var(--teal);}
+.sf-arrows{display:flex;flex-direction:column;align-items:center;gap:0.4rem;}
+.arrow{font-size:1.3rem;color:var(--shared);}
+.arrow-label{font-size:0.6rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-align:center;}
+
+/* Quick start */
+.quickstart{background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(16,185,129,0.08));border:1px solid rgba(16,185,129,0.25);border-radius:16px;padding:1.5rem;}
+.qs-title{font-size:0.8rem;font-weight:700;color:var(--teal);margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.1em;}
+.qs-steps{display:flex;flex-direction:column;gap:0.7rem;counter-reset:qs;}
+.qs-step{display:flex;gap:0.8rem;align-items:flex-start;counter-increment:qs;}
+.qs-num{width:24px;height:24px;border-radius:50%;background:var(--surface2);border:1px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-family:'JetBrains Mono',monospace;color:var(--teal);flex-shrink:0;margin-top:0.1rem;}
+.qs-text{font-size:0.8rem;color:var(--muted);line-height:1.5;}
+.qs-text strong{color:var(--text);}
+
+@media(max-width:700px){
+  .apps-overview{grid-template-columns:1fr;} .app-block.buyer,.app-block.seller{border:none;border-bottom:1px solid var(--border);}
+  .sync-flow{grid-template-columns:1fr;} .sf-arrows{flex-direction:row;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <div class="version-badge">🔗 Integration v1.0 · localStorage Bridge</div>
+    <h1>Milk Tracker Integration</h1>
+    <p>Complete data flow architecture between the Buyer and Seller applications</p>
+  </div>
+
+  <!-- Apps overview -->
+  <div class="apps-overview">
+    <div class="app-block buyer">
+      <div class="app-tag buyer">🛒 Buyer App</div>
+      <div class="app-name">MilkBuyer Dashboard</div>
+      <div class="app-file">milk-buyer.html</div>
+      <div class="app-features">
+        <div class="feat">Add &amp; manage multiple sellers with unique IDs</div>
+        <div class="feat">Log morning &amp; evening entries per seller</div>
+        <div class="feat">Track individual seller bills &amp; payments</div>
+        <div class="feat">View aggregated stats across all sellers</div>
+        <div class="feat">Publish data to shared integration layer</div>
+      </div>
+    </div>
+    <div class="connector">
+      <div class="conn-icon">⇄</div>
+      <div class="conn-label">Shared<br>Storage</div>
+    </div>
+    <div class="app-block seller">
+      <div class="app-tag seller">🥛 Seller App</div>
+      <div class="app-name">Seller Portal</div>
+      <div class="app-file">milk-seller.html</div>
+      <div class="app-features">
+        <div class="feat">Profile card with name &amp; ID at the top</div>
+        <div class="feat">Log own morning &amp; evening deliveries</div>
+        <div class="feat">View buyer-set price &amp; unit automatically</div>
+        <div class="feat">Track payments received</div>
+        <div class="feat">Auto-sync with buyer's data every 5 sec</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Integration flow steps -->
+  <div class="section">
+    <div class="section-title"><div class="num">1</div> Integration Data Flow (Step by Step)</div>
+    <div class="flow-steps">
+
+      <div class="step">
+        <div class="step-line"><div class="step-dot buyer"></div><div class="step-connector buyer"></div></div>
+        <div class="step-body">
+          <div class="step-label buyer">Buyer App</div>
+          <div class="step-title">Buyer registers sellers</div>
+          <div class="step-desc">Buyer opens <code style="font-family:'JetBrains Mono',monospace;color:var(--blue)">milk-buyer.html</code>, adds sellers with a <strong>unique Seller ID</strong> (e.g. SEL-001), name, and phone. Seller data is saved to <code style="font-family:'JetBrains Mono',monospace;color:var(--blue)">buyerSellers</code>.</div>
+          <div class="code-block"><span class="code-comment">// Buyer localStorage</span><br>buyerSellers → [{ <span class="code-key">id</span>: <span class="code-str">"SEL-001"</span>, <span class="code-key">name</span>: <span class="code-str">"Rajan Dairy"</span>, ... }]</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"><div class="step-dot buyer"></div><div class="step-connector shared"></div></div>
+        <div class="step-body">
+          <div class="step-label buyer">Buyer App → Shared Layer</div>
+          <div class="step-title">Buyer publishes to shared storage</div>
+          <div class="step-desc">On every entry, payment, or when "Live Sync" is clicked, the buyer writes a full snapshot to the <strong>shared integration key</strong>: <code style="font-family:'JetBrains Mono',monospace;color:var(--shared)">milkSharedData</code>. This includes sellers list, all entries, all payments, price, and unit.</div>
+          <div class="code-block"><span class="code-comment">// Integration key — readable by both apps</span><br>milkSharedData → {<br>&nbsp;&nbsp;<span class="code-key">sellers</span>:  [...],<br>&nbsp;&nbsp;<span class="code-key">entries</span>:  { <span class="code-str">"SEL-001"</span>: [...] },<br>&nbsp;&nbsp;<span class="code-key">payments</span>: { <span class="code-str">"SEL-001"</span>: [...] },<br>&nbsp;&nbsp;<span class="code-key">price</span>:    <span class="code-val">60</span>,<br>&nbsp;&nbsp;<span class="code-key">unit</span>:     <span class="code-str">"L"</span>,<br>&nbsp;&nbsp;<span class="code-key">updatedAt</span>: <span class="code-val">1700000000000</span><br>}</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"><div class="step-dot seller"></div><div class="step-connector seller"></div></div>
+        <div class="step-body">
+          <div class="step-label seller">Seller App</div>
+          <div class="step-title">Seller sets up their profile</div>
+          <div class="step-desc">Seller opens <code style="font-family:'JetBrains Mono',monospace;color:var(--seller)">milk-seller.html</code> for the first time. A setup modal prompts for their <strong>name</strong> and <strong>Seller ID</strong>. The ID must match what the buyer registered. Profile is stored in <code style="font-family:'JetBrains Mono',monospace;color:var(--seller)">sellerProfile</code>.</div>
+          <div class="code-block"><span class="code-comment">// Seller localStorage</span><br>sellerProfile → { <span class="code-key">id</span>: <span class="code-str">"SEL-001"</span>, <span class="code-key">name</span>: <span class="code-str">"Rajan Dairy"</span>, ... }</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"><div class="step-dot shared"></div><div class="step-connector shared"></div></div>
+        <div class="step-body">
+          <div class="step-label shared">Shared Layer → Seller App</div>
+          <div class="step-title">Seller reads buyer's price &amp; unit</div>
+          <div class="step-desc">On load and every 5 seconds, the seller reads <code style="font-family:'JetBrains Mono',monospace;color:var(--shared)">milkSharedData</code>. If the seller ID matches a buyer-registered seller, it <strong>auto-pulls</strong> the buyer's price, unit, and existing entries — ensuring both apps stay in sync.</div>
+          <div class="code-block"><span class="code-comment">// Seller reads from shared layer</span><br>const shared = JSON.parse(localStorage.getItem(<span class="code-str">'milkSharedData'</span>));<br>const found = shared.sellers.find(s => s.id === profile.id);<br><span class="code-comment">// Pull price & unit automatically</span><br>priceInput.value = shared.price; &nbsp;<span class="code-comment">// ← ₹60</span><br>currentUnit = shared.unit; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// ← "L"</span></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"><div class="step-dot seller"></div><div class="step-connector seller"></div></div>
+        <div class="step-body">
+          <div class="step-label seller">Seller App</div>
+          <div class="step-title">Seller logs deliveries</div>
+          <div class="step-desc">Seller adds morning/evening milk quantity entries. These are saved to <code style="font-family:'JetBrains Mono',monospace;color:var(--seller)">sellerEntries</code> locally and <strong>pushed back into the shared layer</strong> under their seller ID key — making it instantly available in the buyer's app.</div>
+          <div class="code-block"><span class="code-comment">// Seller writes back to shared data</span><br>shared.entries[<span class="code-str">"SEL-001"</span>] = sellerEntries;<br>shared.payments[<span class="code-str">"SEL-001"</span>] = sellerPayments;<br>localStorage.setItem(<span class="code-str">'milkSharedData'</span>, JSON.stringify(shared));</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-line"><div class="step-dot buyer"></div><div class="step-connector buyer" style="min-height:0;"></div></div>
+        <div class="step-body">
+          <div class="step-label buyer">Buyer App</div>
+          <div class="step-title">Buyer sees updated data</div>
+          <div class="step-desc">When buyer clicks <strong>"Live Sync with Sellers"</strong> or adds entries, the buyer app reads from <code style="font-family:'JetBrains Mono',monospace;color:var(--shared)">milkSharedData</code> and refreshes all views — reflecting both buyer-entered and seller-entered data in the unified dashboard.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Sync diagram -->
+  <div class="section">
+    <div class="section-title"><div class="num">2</div> Sync Architecture Diagram</div>
+    <div class="sync-flow">
+      <div class="sf-box">
+        <div class="sf-title buyer">🛒 Buyer App (milk-buyer.html)</div>
+        <div class="sf-item">Writes: sellers[], entries{}, payments{}</div>
+        <div class="sf-item">Writes: price, unit, updatedAt</div>
+        <div class="sf-item">Reads: seller-updated entries back</div>
+        <div class="sf-item">Trigger: on every save + sync button</div>
+      </div>
+      <div class="sf-arrows">
+        <div class="arrow">↔</div>
+        <div class="arrow-label">localStorage<br>milkSharedData</div>
+      </div>
+      <div class="sf-box">
+        <div class="sf-title seller">🥛 Seller App (milk-seller.html)</div>
+        <div class="sf-item">Reads: price, unit from buyer</div>
+        <div class="sf-item">Reads: own entries if local is empty</div>
+        <div class="sf-item">Writes: own entries, payments back</div>
+        <div class="sf-item">Trigger: on save + every 5 seconds</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- localStorage keys -->
+  <div class="section">
+    <div class="section-title"><div class="num">3</div> localStorage Keys Reference</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+      <table class="keys-table">
+        <thead><tr><th>Key</th><th>Owner</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td class="key-name">buyerSellers</td><td><span class="key-owner buyer">Buyer</span></td><td class="key-desc">Array of all registered seller objects (id, name, color, phone)</td></tr>
+          <tr><td class="key-name">buyerEntries</td><td><span class="key-owner buyer">Buyer</span></td><td class="key-desc">Object keyed by sellerId, each containing array of milk entries</td></tr>
+          <tr><td class="key-name">buyerPayments</td><td><span class="key-owner buyer">Buyer</span></td><td class="key-desc">Object keyed by sellerId, each containing array of payment records</td></tr>
+          <tr><td class="key-name">buyerUnit</td><td><span class="key-owner buyer">Buyer</span></td><td class="key-desc">Selected unit preference: "L" or "kg"</td></tr>
+          <tr><td class="key-name">sellerProfile</td><td><span class="key-owner seller">Seller</span></td><td class="key-desc">Seller's own profile: id, name, phone</td></tr>
+          <tr><td class="key-name">sellerEntries</td><td><span class="key-owner seller">Seller</span></td><td class="key-desc">Seller's own delivery entries array</td></tr>
+          <tr><td class="key-name">sellerPayments</td><td><span class="key-owner seller">Seller</span></td><td class="key-desc">Seller's received payment records</td></tr>
+          <tr><td class="key-name">sellerUnit</td><td><span class="key-owner seller">Seller</span></td><td class="key-desc">Seller's unit preference (overridden by buyer sync)</td></tr>
+          <tr><td class="key-name">milkSharedData</td><td><span class="key-owner both">Both ⇄</span></td><td class="key-desc"><strong>Integration bridge</strong> — complete snapshot read/written by both apps for cross-app data sharing</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Data schemas -->
+  <div class="section">
+    <div class="section-title"><div class="num">4</div> Data Schemas</div>
+    <div class="schema-grid">
+      <div class="schema-card">
+        <div class="schema-title">Seller Object</div>
+        <div class="schema-field"><span class="field-name">id</span><span class="field-type">string</span></div>
+        <div class="schema-field"><span class="field-name">name</span><span class="field-type">string</span></div>
+        <div class="schema-field"><span class="field-name">phone</span><span class="field-type">string?</span></div>
+        <div class="schema-field"><span class="field-name">color</span><span class="field-type">string</span></div>
+        <div class="schema-field"><span class="field-name">addedAt</span><span class="field-type">timestamp</span></div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-title">Milk Entry Object</div>
+        <div class="schema-field"><span class="field-name">id</span><span class="field-type">timestamp</span></div>
+        <div class="schema-field"><span class="field-name">date</span><span class="field-type">YYYY-MM-DD</span></div>
+        <div class="schema-field"><span class="field-name">qty</span><span class="field-type">number</span></div>
+        <div class="schema-field"><span class="field-name">session</span><span class="field-type">"morning"|"evening"</span></div>
+        <div class="schema-field"><span class="field-name">price</span><span class="field-type">number</span></div>
+        <div class="schema-field"><span class="field-name">unit</span><span class="field-type">"L"|"kg"</span></div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-title">Payment Object</div>
+        <div class="schema-field"><span class="field-name">id</span><span class="field-type">timestamp</span></div>
+        <div class="schema-field"><span class="field-name">date</span><span class="field-type">YYYY-MM-DD</span></div>
+        <div class="schema-field"><span class="field-name">amount</span><span class="field-type">number</span></div>
+        <div class="schema-field"><span class="field-name">note</span><span class="field-type">string?</span></div>
+      </div>
+      <div class="schema-card">
+        <div class="schema-title">milkSharedData Object</div>
+        <div class="schema-field"><span class="field-name">sellers</span><span class="field-type">Seller[]</span></div>
+        <div class="schema-field"><span class="field-name">entries</span><span class="field-type">{[id]: Entry[]}</span></div>
+        <div class="schema-field"><span class="field-name">payments</span><span class="field-type">{[id]: Payment[]}</span></div>
+        <div class="schema-field"><span class="field-name">price</span><span class="field-type">number</span></div>
+        <div class="schema-field"><span class="field-name">unit</span><span class="field-type">"L"|"kg"</span></div>
+        <div class="schema-field"><span class="field-name">updatedAt</span><span class="field-type">timestamp</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick start guide -->
+  <div class="section">
+    <div class="section-title"><div class="num">5</div> Quick Start Guide</div>
+    <div class="quickstart">
+      <div class="qs-title">How to connect Buyer ↔ Seller (Same Browser)</div>
+      <div class="qs-steps">
+        <div class="qs-step"><div class="qs-num">1</div><div class="qs-text">Open <strong>milk-buyer.html</strong> — set your price (₹/unit) and unit (L or kg).</div></div>
+        <div class="qs-step"><div class="qs-num">2</div><div class="qs-text">Click <strong>"Add New Seller"</strong> and enter seller details. Use a memorable ID like <strong>SEL-001</strong>. This publishes data to <code style="font-family:'JetBrains Mono',monospace">milkSharedData</code>.</div></div>
+        <div class="qs-step"><div class="qs-num">3</div><div class="qs-text">Open <strong>milk-seller.html</strong> in another browser tab. Enter your name and the <strong>exact same Seller ID</strong> used in the buyer app.</div></div>
+        <div class="qs-step"><div class="qs-num">4</div><div class="qs-text">The seller app will say <strong>"Buyer connected · ID matched"</strong> — price and unit auto-sync from the buyer.</div></div>
+        <div class="qs-step"><div class="qs-num">5</div><div class="qs-text">Both apps can now add entries independently. Seller entries flow back into the buyer dashboard via the shared layer every time either app saves data.</div></div>
+        <div class="qs-step"><div class="qs-num">6</div><div class="qs-text">In the buyer app, click <strong>"Live Sync with Sellers"</strong> anytime to refresh and pull the latest seller data into the dashboard.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;color:var(--muted);font-size:0.72rem;margin-top:2rem;font-family:'JetBrains Mono',monospace;">
+    Milk Tracker Integration · localStorage Bridge · Works entirely in-browser · No server required
+  </div>
+
+</div>
+</body>
+</html>

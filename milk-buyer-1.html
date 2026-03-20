@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Milk Buyer — Dairy Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --surface2: #1C2333;
+  --border: #30363D;
+  --border2: #21262D;
+  --text: #E6EDF3;
+  --muted: #7D8590;
+  --blue: #58A6FF;
+  --blue-dim: #1F3A5C;
+  --green: #3FB950;
+  --green-dim: #1A3A22;
+  --orange: #F0883E;
+  --orange-dim: #3D2410;
+  --red: #F85149;
+  --red-dim: #3D1A18;
+  --purple: #BC8CFF;
+  --purple-dim: #2D1A4A;
+  --yellow: #E3B341;
+  --yellow-dim: #3A2C0A;
+  --accent: #238636;
+  --radius: 12px;
+  --radius-lg: 18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;line-height:1.5;}
+::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* Layout */
+.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh;}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.main{padding:2rem;overflow-x:hidden;}
+
+/* Sidebar */
+.sidebar-header{padding:1.5rem 1.2rem 1rem;border-bottom:1px solid var(--border2);}
+.app-logo{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.3rem;}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,#238636,#3FB950);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.app-name{font-size:1rem;font-weight:700;color:var(--text);}
+.app-role{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--green);letter-spacing:0.1em;text-transform:uppercase;background:var(--green-dim);padding:0.18rem 0.55rem;border-radius:4px;border:1px solid rgba(63,185,80,0.3);}
+
+.sidebar-section{padding:1rem 1.2rem;border-bottom:1px solid var(--border2);}
+.sidebar-label{font-size:0.62rem;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.7rem;}
+
+/* Price/Unit settings */
+.setting-row{display:flex;flex-direction:column;gap:0.35rem;margin-bottom:0.8rem;}
+.setting-label{font-size:0.7rem;color:var(--muted);}
+.input-dark{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.75rem;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.88rem;outline:none;width:100%;transition:border-color 0.2s;}
+.input-dark:focus{border-color:var(--blue);}
+.unit-pills{display:flex;gap:0.35rem;}
+.unit-pill{flex:1;padding:0.42rem 0.5rem;border:1px solid var(--border);border-radius:7px;background:var(--bg);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:0.78rem;cursor:pointer;text-align:center;transition:all 0.2s;}
+.unit-pill.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+
+/* Seller list */
+.seller-list{padding:0.8rem 1.2rem;flex:1;overflow-y:auto;}
+.seller-item{display:flex;align-items:center;gap:0.6rem;padding:0.65rem 0.75rem;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;margin-bottom:0.3rem;border:1px solid transparent;}
+.seller-item:hover{background:var(--surface2);}
+.seller-item.active{background:var(--blue-dim);border-color:rgba(88,166,255,0.3);}
+.seller-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:700;flex-shrink:0;}
+.seller-info{flex:1;min-width:0;}
+.seller-name{font-size:0.82rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.seller-id{font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.seller-due{font-size:0.7rem;font-family:'JetBrains Mono',monospace;color:var(--orange);white-space:nowrap;}
+.seller-due.settled{color:var(--green);}
+
+.btn-add-seller{margin:0.8rem 1.2rem;padding:0.6rem;background:rgba(35,134,54,0.15);border:1px dashed rgba(63,185,80,0.4);border-radius:var(--radius);color:var(--green);font-family:'Sora',sans-serif;font-size:0.8rem;cursor:pointer;width:calc(100% - 2.4rem);transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.4rem;}
+.btn-add-seller:hover{background:rgba(35,134,54,0.25);}
+
+/* Main area */
+.main-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;}
+.page-title{font-size:1.6rem;font-weight:800;color:var(--text);line-height:1.1;}
+.page-sub{font-size:0.8rem;color:var(--muted);margin-top:0.3rem;}
+.sync-btn{display:flex;align-items:center;gap:0.4rem;padding:0.5rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-family:'Sora',sans-serif;font-size:0.78rem;cursor:pointer;transition:all 0.2s;}
+.sync-btn:hover{border-color:var(--blue);color:var(--blue);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:transform 0.2s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-icon{font-size:1.4rem;margin-bottom:0.6rem;}
+.stat-label{font-size:0.62rem;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.3rem;}
+.stat-val{font-size:1.5rem;font-weight:700;line-height:1;}
+.stat-val.blue{color:var(--blue);}
+.stat-val.green{color:var(--green);}
+.stat-val.orange{color:var(--orange);}
+.stat-val.purple{color:var(--purple);}
+.stat-sub{font-size:0.68rem;color:var(--muted);margin-top:0.3rem;}
+
+/* Seller detail panel */
+.seller-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:1.5rem;overflow:hidden;}
+.panel-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.8rem;}
+.panel-seller-info{display:flex;align-items:center;gap:1rem;}
+.panel-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;}
+.panel-name{font-size:1.1rem;font-weight:700;}
+.panel-id{font-size:0.7rem;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+.panel-price-info{font-size:0.75rem;font-family:'JetBrains Mono',monospace;color:var(--muted);}
+
+/* Entry form inline */
+.entry-row{display:flex;gap:0.6rem;align-items:flex-end;padding:1rem 1.5rem;background:var(--surface2);border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.entry-field{display:flex;flex-direction:column;gap:0.3rem;}
+.entry-field label{font-size:0.63rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+.entry-field input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:0.5rem 0.75rem;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.88rem;outline:none;transition:border-color 0.2s;}
+.entry-field input:focus{border-color:var(--blue);}
+.session-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.sess-btn{padding:0.5rem 0.9rem;background:var(--bg);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:0.78rem;cursor:pointer;border:none;transition:all 0.15s;}
+.sess-btn.morning.active{background:#2D1F08;color:var(--orange);}
+.sess-btn.evening.active{background:#1A1A3A;color:var(--purple);}
+.btn-save{padding:0.55rem 1.2rem;background:var(--accent);border:none;border-radius:8px;color:white;font-family:'Sora',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.btn-save:hover{background:#2EA043;transform:translateY(-1px);}
+
+/* Seller mini stats */
+.seller-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--border2);}
+.s-stat{padding:0.9rem 1rem;text-align:center;border-right:1px solid var(--border2);}
+.s-stat:last-child{border-right:none;}
+.s-stat-label{font-size:0.6rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:0.25rem;}
+.s-stat-val{font-size:1.1rem;font-weight:700;}
+
+/* Table */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+thead tr{border-bottom:1px solid var(--border);}
+th{font-size:0.6rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.09em;padding:0.7rem 1rem;text-align:left;font-weight:400;}
+tbody tr{border-bottom:1px solid var(--border2);transition:background 0.12s;}
+tbody tr:hover{background:var(--surface2);}
+td{padding:0.7rem 1rem;vertical-align:middle;}
+.badge{display:inline-flex;align-items:center;gap:0.25rem;padding:0.18rem 0.55rem;border-radius:20px;font-size:0.68rem;font-family:'JetBrains Mono',monospace;}
+.badge.morning{background:#2D1F08;color:var(--orange);border:1px solid rgba(240,136,62,0.25);}
+.badge.evening{background:#1A1A3A;color:var(--purple);border:1px solid rgba(188,140,255,0.25);}
+.day-header td{background:var(--surface2);color:var(--muted);font-size:0.68rem;font-family:'JetBrains Mono',monospace;padding:0.38rem 1rem;letter-spacing:0.05em;}
+.day-total td{font-size:0.75rem;font-weight:600;color:var(--blue);padding:0.4rem 1rem;background:rgba(88,166,255,0.04);border-top:1px dashed var(--border);}
+.grand-row td{font-size:0.82rem;font-weight:700;color:var(--text);padding:0.7rem 1rem;border-top:2px solid var(--border);background:var(--surface2);}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--red);opacity:0.4;font-size:0.85rem;padding:0.2rem 0.4rem;border-radius:5px;transition:all 0.15s;}
+.btn-del:hover{opacity:1;background:var(--red-dim);}
+
+/* Payment tracker inside panel */
+.payment-zone{padding:1.2rem 1.5rem;border-top:1px solid var(--border2);background:var(--surface2);}
+.payment-zone-title{font-size:0.7rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.8rem;}
+.pay-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.8rem;}
+.pay-chip{border-radius:10px;padding:0.65rem 0.8rem;text-align:center;}
+.pay-chip.bill{background:var(--blue-dim);border:1px solid rgba(88,166,255,0.2);}
+.pay-chip.paid{background:var(--green-dim);border:1px solid rgba(63,185,80,0.2);}
+.pay-chip.due{background:var(--red-dim);border:1px solid rgba(248,81,73,0.2);}
+.pay-chip-label{font-size:0.58rem;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);margin-bottom:0.2rem;}
+.pay-chip-val{font-size:1rem;font-weight:700;}
+.pay-chip.bill .pay-chip-val{color:var(--blue);}
+.pay-chip.paid .pay-chip-val{color:var(--green);}
+.pay-chip.due  .pay-chip-val{color:var(--red);}
+.pay-form{display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end;}
+.pay-form .entry-field{flex:1;min-width:100px;}
+.btn-pay{padding:0.55rem 1rem;background:rgba(63,185,80,0.2);border:1px solid rgba(63,185,80,0.4);border-radius:8px;color:var(--green);font-family:'Sora',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.btn-pay:hover{background:rgba(63,185,80,0.35);}
+.pay-history{margin-top:0.8rem;}
+.pay-item{display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.6rem;border-radius:7px;background:var(--bg);border:1px solid var(--border2);margin-bottom:0.3rem;font-size:0.75rem;}
+.pay-item-left{display:flex;gap:0.6rem;align-items:center;}
+.pay-date{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:0.7rem;}
+.pay-note{color:var(--text);}
+.pay-amt{font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:600;}
+
+/* Modals */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;backdrop-filter:blur(4px);}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;width:100%;max-width:440px;animation:modalIn 0.25s ease;}
+@keyframes modalIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.modal-title{font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;}
+.modal-field{display:flex;flex-direction:column;gap:0.35rem;margin-bottom:1rem;}
+.modal-field label{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+.modal-btns{display:flex;gap:0.6rem;margin-top:1.5rem;}
+.btn-primary{flex:1;padding:0.65rem;background:var(--accent);border:none;border-radius:var(--radius);color:white;font-family:'Sora',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;transition:all 0.2s;}
+.btn-primary:hover{background:#2EA043;}
+.btn-secondary{flex:1;padding:0.65rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--muted);font-family:'Sora',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.2s;}
+.btn-secondary:hover{border-color:var(--text);color:var(--text);}
+
+/* Color swatches */
+.color-picker{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.3rem;}
+.color-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
+.color-swatch.selected{border-color:white;transform:scale(1.15);}
+
+/* Empty states */
+.empty-panel{padding:3rem 2rem;text-align:center;color:var(--muted);}
+.empty-icon{font-size:2.5rem;margin-bottom:0.8rem;}
+.empty-text{font-size:0.85rem;}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:0.4rem;margin-bottom:1rem;flex-wrap:wrap;}
+.filter-pill{padding:0.35rem 0.8rem;border:1px solid var(--border);border-radius:20px;font-size:0.72rem;font-family:'JetBrains Mono',monospace;cursor:pointer;background:var(--bg);color:var(--muted);transition:all 0.15s;}
+.filter-pill.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+
+/* Sync indicator */
+.sync-banner{background:var(--green-dim);border:1px solid rgba(63,185,80,0.3);border-radius:var(--radius);padding:0.6rem 1rem;margin-bottom:1.5rem;font-size:0.75rem;color:var(--green);display:flex;align-items:center;gap:0.5rem;display:none;}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:0.7rem 1.2rem;font-size:0.82rem;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,0.4);transform:translateY(80px);opacity:0;transition:all 0.3s;z-index:200;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;}
+  .sidebar{height:auto;position:static;}
+  .seller-stats{grid-template-columns:repeat(2,1fr);}
+  .pay-summary{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="app-logo">
+        <div class="logo-icon">🛒</div>
+        <span class="app-name">MilkBuyer</span>
+      </div>
+      <div class="app-role">Buyer Dashboard</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Price Settings</div>
+      <div class="setting-row">
+        <span class="setting-label">Price per unit (₹)</span>
+        <input class="input-dark" type="number" id="globalPrice" value="60" min="0" step="0.5">
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Unit</span>
+        <div class="unit-pills">
+          <button class="unit-pill active" id="unitL"  onclick="setUnit('L',this)">Litre</button>
+          <button class="unit-pill"        id="unitKg" onclick="setUnit('kg',this)">Kg</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-label" style="padding:0.8rem 1.2rem 0.3rem;">My Sellers</div>
+    <div class="seller-list" id="sellerList">
+      <!-- Seller items rendered here -->
+    </div>
+    <button class="btn-add-seller" onclick="openAddSeller()">＋ Add New Seller</button>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <div class="page-title">Buyer Dashboard</div>
+        <div class="page-sub">Track milk from all your sellers in one place</div>
+      </div>
+      <button class="sync-btn" onclick="syncData()">
+        <span class="sync-dot"></span> Live Sync with Sellers
+      </button>
+    </div>
+
+    <div id="syncBanner" class="sync-banner">✓ Data synced with seller apps successfully</div>
+
+    <!-- Global stats -->
+    <div class="stats-grid" id="globalStats">
+      <div class="stat-card">
+        <div class="stat-icon">🏪</div>
+        <div class="stat-label">Total Sellers</div>
+        <div class="stat-val blue" id="gTotalSellers">0</div>
+        <div class="stat-sub">Active</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🥛</div>
+        <div class="stat-label">Month Qty (All)</div>
+        <div class="stat-val green" id="gMonthQty">0</div>
+        <div class="stat-sub" id="gMonthQtyUnit">L</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">Month Bill (All)</div>
+        <div class="stat-val orange" id="gMonthBill">₹0</div>
+        <div class="stat-sub">Total owed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-label">Balance Due (All)</div>
+        <div class="stat-val" id="gBalDue" style="color:var(--red)">₹0</div>
+        <div class="stat-sub">Unpaid this month</div>
+      </div>
+    </div>
+
+    <!-- Seller detail panel -->
+    <div id="sellerPanel">
+      <div class="seller-panel">
+        <div class="empty-panel">
+          <div class="empty-icon">👈</div>
+          <div class="empty-text">Select a seller from the sidebar to view details, add entries, and track payments.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Seller Modal -->
+<div class="overlay" id="addSellerModal" style="display:none;">
+  <div class="modal">
+    <div class="modal-title">Add New Milk Seller</div>
+    <div class="modal-field">
+      <label>Seller Name</label>
+      <input class="input-dark" id="newSellerName" placeholder="e.g. Rajan Dairy" maxlength="40">
+    </div>
+    <div class="modal-field">
+      <label>Unique Seller ID</label>
+      <input class="input-dark" id="newSellerId" placeholder="e.g. SEL-001" maxlength="20">
+    </div>
+    <div class="modal-field">
+      <label>Phone (optional)</label>
+      <input class="input-dark" id="newSellerPhone" placeholder="e.g. 9876543210" maxlength="15">
+    </div>
+    <div class="modal-field">
+      <label>Avatar Color</label>
+      <div class="color-picker" id="colorPicker"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('addSellerModal')">Cancel</button>
+      <button class="btn-primary" onclick="addSeller()">Add Seller</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COLORS = ['#58A6FF','#3FB950','#F0883E','#F85149','#BC8CFF','#E3B341','#39D353','#FF7B72','#79C0FF','#D2A8FF'];
+const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const SHARED_KEY = 'milkSharedData'; // Integration key shared with seller app
+
+let sellers      = JSON.parse(localStorage.getItem('buyerSellers')  || '[]');
+let entries      = JSON.parse(localStorage.getItem('buyerEntries')  || '{}'); // {sellerId: [...]}
+let payments     = JSON.parse(localStorage.getItem('buyerPayments') || '{}'); // {sellerId: [...]}
+let currentUnit  = localStorage.getItem('buyerUnit') || 'L';
+let activeSeller = null;
+let currentFilter= 'month';
+let selectedColor= COLORS[0];
+let currentSess  = 'morning';
+
+/* ── Init ── */
+buildColorPicker();
+if (currentUnit==='kg') { document.getElementById('unitL').classList.remove('active'); document.getElementById('unitKg').classList.add('active'); }
+document.getElementById('globalPrice').addEventListener('input', renderAll);
+renderAll();
+
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function getPrice(){ return parseFloat(document.getElementById('globalPrice').value)||0; }
+function saveAll(){
+  localStorage.setItem('buyerSellers',  JSON.stringify(sellers));
+  localStorage.setItem('buyerEntries',  JSON.stringify(entries));
+  localStorage.setItem('buyerPayments', JSON.stringify(payments));
+  publishSharedData();
+}
+function setUnit(u,btn){
+  currentUnit=u;
+  localStorage.setItem('buyerUnit',u);
+  document.querySelectorAll('.unit-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+/* ── Shared data (integration with seller app) ── */
+function publishSharedData(){
+  const shared = { sellers, entries, payments, unit: currentUnit, price: getPrice(), updatedAt: Date.now() };
+  localStorage.setItem(SHARED_KEY, JSON.stringify(shared));
+}
+function syncData(){
+  publishSharedData();
+  const banner = document.getElementById('syncBanner');
+  banner.style.display='flex';
+  setTimeout(()=>banner.style.display='none', 3000);
+  toast('✓ Synced with seller apps!');
+}
+
+/* ── Color picker ── */
+function buildColorPicker(){
+  const cp = document.getElementById('colorPicker');
+  COLORS.forEach((c,i)=>{
+    const s = document.createElement('div');
+    s.className = 'color-swatch'+(i===0?' selected':'');
+    s.style.background=c;
+    s.onclick=()=>{ selectedColor=c; document.querySelectorAll('.color-swatch').forEach(x=>x.classList.remove('selected')); s.classList.add('selected'); };
+    cp.appendChild(s);
+  });
+}
+
+/* ── Modals ── */
+function openAddSeller(){
+  document.getElementById('newSellerName').value='';
+  document.getElementById('newSellerId').value='SEL-'+String(sellers.length+1).padStart(3,'0');
+  document.getElementById('newSellerPhone').value='';
+  document.getElementById('addSellerModal').style.display='flex';
+}
+function closeModal(id){ document.getElementById(id).style.display='none'; }
+window.addEventListener('click',e=>{ if(e.target.classList.contains('overlay')) e.target.style.display='none'; });
+
+/* ── Add seller ── */
+function addSeller(){
+  const name  = document.getElementById('newSellerName').value.trim();
+  const id    = document.getElementById('newSellerId').value.trim().toUpperCase();
+  const phone = document.getElementById('newSellerPhone').value.trim();
+  if(!name){ toast('Enter seller name'); return; }
+  if(!id)  { toast('Enter seller ID'); return; }
+  if(sellers.find(s=>s.id===id)){ toast('Seller ID already exists!'); return; }
+  sellers.push({ id, name, phone, color: selectedColor, addedAt: Date.now() });
+  entries[id]  = entries[id]  || [];
+  payments[id] = payments[id] || [];
+  saveAll();
+  closeModal('addSellerModal');
+  toast('✓ Seller added: '+name);
+  renderAll();
+  selectSeller(id);
+}
+
+/* ── Select seller ── */
+function selectSeller(id){
+  activeSeller = id;
+  renderAll();
+}
+
+/* ── Add entry ── */
+function addEntry(){
+  if(!activeSeller){ toast('Select a seller first'); return; }
+  const date = document.getElementById('eDate').value;
+  const qty  = parseFloat(document.getElementById('eQty').value);
+  if(!date)         { toast('Select a date'); return; }
+  if(!qty||qty<=0)  { toast('Enter valid quantity'); return; }
+  const sess = currentSess;
+  const list = entries[activeSeller];
+  const dup  = list.find(e=>e.date===date&&e.session===sess);
+  if(dup){ if(!confirm(`Replace existing ${sess} entry for ${date}?`)) return; entries[activeSeller]=list.filter(e=>!(e.date===date&&e.session===sess)); }
+  entries[activeSeller].unshift({ id:Date.now(), date, qty, session:sess, price:getPrice(), unit:currentUnit });
+  saveAll();
+  document.getElementById('eQty').value='';
+  toast(`☀️ ${sess} entry added!`);
+  renderAll();
+}
+
+/* ── Delete entry ── */
+function deleteEntry(sellerId, entryId){
+  entries[sellerId]=entries[sellerId].filter(e=>e.id!==entryId);
+  saveAll(); renderAll();
+  toast('Entry deleted');
+}
+
+/* ── Add payment ── */
+function addPayment(){
+  if(!activeSeller) return;
+  const date=document.getElementById('pDate').value, amount=parseFloat(document.getElementById('pAmt').value), note=document.getElementById('pNote').value.trim();
+  if(!date||!amount||amount<=0){ toast('Enter valid payment details'); return; }
+  payments[activeSeller].unshift({ id:Date.now(), date, amount, note });
+  saveAll();
+  document.getElementById('pAmt').value=''; document.getElementById('pNote').value='';
+  toast('✓ Payment recorded');
+  renderAll();
+}
+function deletePayment(sellerId, payId){
+  payments[sellerId]=payments[sellerId].filter(p=>p.id!==payId);
+  saveAll(); renderAll(); toast('Payment removed');
+}
+
+/* ── Helpers ── */
+function thisMonth(list){
+  const now=new Date();
+  return list.filter(e=>{ const d=new Date(e.date+'T00:00:00'); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); });
+}
+function thisWeek(list){
+  const now=new Date(), start=new Date(now);
+  start.setDate(now.getDate()-now.getDay()); start.setHours(0,0,0,0);
+  return list.filter(e=>new Date(e.date+'T00:00:00')>=start);
+}
+function fmtDate(s){ return new Date(s+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+function initials(name){ return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+/* ── Render all ── */
+function renderAll(){
+  renderSidebar();
+  renderGlobalStats();
+  renderSellerPanel();
+}
+
+function renderSidebar(){
+  const list = document.getElementById('sellerList');
+  if(sellers.length===0){ list.innerHTML='<div style="padding:1rem;font-size:0.78rem;color:var(--muted);text-align:center;">No sellers yet.<br>Add your first seller below.</div>'; return; }
+  const price=getPrice();
+  list.innerHTML=sellers.map(s=>{
+    const mEntries=thisMonth(entries[s.id]||[]);
+    const mPay=thisMonth(payments[s.id]||[]);
+    const bill=mEntries.reduce((sum,e)=>sum+e.qty,0)*price;
+    const paid=mPay.reduce((sum,p)=>sum+p.amount,0);
+    const due=Math.max(0,bill-paid);
+    return `<div class="seller-item${activeSeller===s.id?' active':''}" onclick="selectSeller('${s.id}')">
+      <div class="seller-avatar" style="background:${s.color}22;color:${s.color}">${initials(s.name)}</div>
+      <div class="seller-info">
+        <div class="seller-name">${s.name}</div>
+        <div class="seller-id">#${s.id}</div>
+      </div>
+      <div class="seller-due${due===0?' settled':''}">₹${due.toFixed(0)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderGlobalStats(){
+  const price=getPrice();
+  let totalQty=0, totalBill=0, totalDue=0;
+  sellers.forEach(s=>{
+    const mE=thisMonth(entries[s.id]||[]);
+    const mP=thisMonth(payments[s.id]||[]);
+    const qty=mE.reduce((sum,e)=>sum+e.qty,0);
+    const bill=qty*price;
+    const paid=mP.reduce((sum,p)=>sum+p.amount,0);
+    totalQty+=qty; totalBill+=bill; totalDue+=Math.max(0,bill-paid);
+  });
+  document.getElementById('gTotalSellers').textContent=sellers.length;
+  document.getElementById('gMonthQty').textContent=+totalQty.toFixed(2);
+  document.getElementById('gMonthQtyUnit').textContent=currentUnit;
+  document.getElementById('gMonthBill').textContent='₹'+totalBill.toFixed(2);
+  document.getElementById('gBalDue').textContent='₹'+totalDue.toFixed(2);
+}
+
+function renderSellerPanel(){
+  const panel=document.getElementById('sellerPanel');
+  if(!activeSeller||!sellers.find(s=>s.id===activeSeller)){
+    panel.innerHTML=`<div class="seller-panel"><div class="empty-panel"><div class="empty-icon">👈</div><div class="empty-text">Select a seller from the sidebar to view details, add entries, and track payments.</div></div></div>`;
+    return;
+  }
+  const seller=sellers.find(s=>s.id===activeSeller);
+  const price=getPrice(); const unit=currentUnit;
+  const allE=entries[activeSeller]||[];
+  const allP=payments[activeSeller]||[];
+  let filtered=[...allE];
+  if(currentFilter==='month') filtered=thisMonth(allE);
+  if(currentFilter==='week')  filtered=thisWeek(allE);
+
+  // Stats
+  const mE=thisMonth(allE), mP=thisMonth(allP);
+  const mMorningQty=mE.filter(e=>e.session==='morning').reduce((s,e)=>s+e.qty,0);
+  const mEveningQty=mE.filter(e=>e.session==='evening').reduce((s,e)=>s+e.qty,0);
+  const mTotalQty=mMorningQty+mEveningQty;
+  const mBill=mTotalQty*price;
+  const mPaid=mP.reduce((s,p)=>s+p.amount,0);
+  const mDue=Math.max(0,mBill-mPaid);
+
+  // Table
+  const sorted=[...filtered].sort((a,b)=>b.date.localeCompare(a.date)||(a.session==='morning'?-1:1));
+  const groups={};
+  sorted.forEach(e=>{ if(!groups[e.date])groups[e.date]=[]; groups[e.date].push(e); });
+  let tableHTML='', grandQty=0, grandAmt=0;
+  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(date=>{
+    const rows=groups[date];
+    const dQty=rows.reduce((s,e)=>s+e.qty,0);
+    const dAmt=dQty*price;
+    grandQty+=dQty; grandAmt+=dAmt;
+    tableHTML+=`<tr class="day-header"><td colspan="6">📅 ${fmtDate(date)} · ${DAYS[new Date(date+'T00:00:00').getDay()]}</td></tr>`;
+    rows.forEach(e=>{
+      tableHTML+=`<tr>
+        <td style="color:var(--muted);font-size:0.78rem;">${fmtDate(e.date)}</td>
+        <td><span class="badge ${e.session}">${e.session==='morning'?'☀️ Morning':'🌙 Evening'}</span></td>
+        <td style="font-weight:600;color:var(--text);">${e.qty} <span style="color:var(--muted);font-size:0.72rem;">${e.unit||unit}</span></td>
+        <td style="color:var(--muted);font-size:0.77rem;">₹${price}/${unit}</td>
+        <td style="color:var(--green);font-weight:600;">₹${(e.qty*price).toFixed(2)}</td>
+        <td><button class="btn-del" onclick="deleteEntry('${activeSeller}',${e.id})">✕</button></td>
+      </tr>`;
+    });
+    if(rows.length>1) tableHTML+=`<tr class="day-total"><td colspan="2" style="padding-left:1.4rem;">Day total</td><td>${+dQty.toFixed(2)} ${unit}</td><td></td><td>₹${dAmt.toFixed(2)}</td><td></td></tr>`;
+  });
+  if(grandQty>0) tableHTML+=`<tr class="grand-row"><td colspan="2">TOTAL (${filtered.length} entries)</td><td>${+grandQty.toFixed(2)} ${unit}</td><td></td><td>₹${grandAmt.toFixed(2)}</td><td></td></tr>`;
+
+  // Payment history
+  const mPayHTML = mP.length===0?'' : mP.map(p=>`
+    <div class="pay-item">
+      <div class="pay-item-left">
+        <span class="pay-date">${fmtDate(p.date)}</span>
+        ${p.note?`<span class="pay-note">${p.note}</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:0.6rem;">
+        <span class="pay-amt">+₹${p.amount.toFixed(2)}</span>
+        <button class="btn-del" onclick="deletePayment('${activeSeller}',${p.id})">✕</button>
+      </div>
+    </div>`).join('');
+
+  panel.innerHTML=`
+  <div class="seller-panel">
+    <div class="panel-header">
+      <div class="panel-seller-info">
+        <div class="panel-avatar" style="background:${seller.color}22;color:${seller.color};font-size:1rem;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;">${initials(seller.name)}</div>
+        <div>
+          <div class="panel-name">${seller.name}</div>
+          <div class="panel-id">#${seller.id}${seller.phone?' · '+seller.phone:''}</div>
+        </div>
+      </div>
+      <div class="panel-price-info">₹${price}/${unit} &nbsp;·&nbsp; Month Bill: <span style="color:var(--orange)">₹${mBill.toFixed(2)}</span></div>
+    </div>
+
+    <!-- Entry form -->
+    <div class="entry-row">
+      <div class="entry-field">
+        <label>Session</label>
+        <div class="session-toggle">
+          <button class="sess-btn morning${currentSess==='morning'?' active':''}" onclick="currentSess='morning';document.querySelectorAll('.sess-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">☀️ Morning</button>
+          <button class="sess-btn evening${currentSess==='evening'?' active':''}" onclick="currentSess='evening';document.querySelectorAll('.sess-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');">🌙 Evening</button>
+        </div>
+      </div>
+      <div class="entry-field">
+        <label>Date</label>
+        <input class="input-dark" type="date" id="eDate" value="${todayStr()}" style="width:145px;">
+      </div>
+      <div class="entry-field">
+        <label>Qty (${unit})</label>
+        <input class="input-dark" type="number" id="eQty" placeholder="1.5" min="0" step="0.1" style="width:90px;" onkeydown="if(event.key==='Enter')addEntry()">
+      </div>
+      <button class="btn-save" onclick="addEntry()">+ Add Entry</button>
+    </div>
+
+    <!-- Seller mini stats -->
+    <div class="seller-stats">
+      <div class="s-stat">
+        <div class="s-stat-label">☀️ Morning</div>
+        <div class="s-stat-val" style="color:var(--orange)">${+mMorningQty.toFixed(2)} <span style="font-size:0.7rem;color:var(--muted)">${unit}</span></div>
+      </div>
+      <div class="s-stat">
+        <div class="s-stat-label">🌙 Evening</div>
+        <div class="s-stat-val" style="color:var(--purple)">${+mEveningQty.toFixed(2)} <span style="font-size:0.7rem;color:var(--muted)">${unit}</span></div>
+      </div>
+      <div class="s-stat">
+        <div class="s-stat-label">📦 Total</div>
+        <div class="s-stat-val" style="color:var(--blue)">${+mTotalQty.toFixed(2)} <span style="font-size:0.7rem;color:var(--muted)">${unit}</span></div>
+      </div>
+      <div class="s-stat">
+        <div class="s-stat-label">💰 Month Bill</div>
+        <div class="s-stat-val" style="color:var(--orange)">₹${mBill.toFixed(2)}</div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" style="padding:0.8rem 1.2rem 0;">
+      <button class="filter-pill${currentFilter==='week'?' active':''}" onclick="currentFilter='week';renderAll()">This Week</button>
+      <button class="filter-pill${currentFilter==='month'?' active':''}" onclick="currentFilter='month';renderAll()">This Month</button>
+      <button class="filter-pill${currentFilter==='all'?' active':''}" onclick="currentFilter='all';renderAll()">All Time</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap" style="padding:0 0 1rem;">
+      ${filtered.length===0
+        ? '<div class="empty-panel" style="padding:1.5rem"><div class="empty-icon" style="font-size:2rem">🥛</div><div class="empty-text">No entries yet for this period.</div></div>'
+        : `<table><thead><tr><th>Date</th><th>Session</th><th>Quantity</th><th>Rate</th><th>Amount</th><th></th></tr></thead><tbody>${tableHTML}</tbody></table>`
+      }
+    </div>
+
+    <!-- Payment zone -->
+    <div class="payment-zone">
+      <div class="payment-zone-title">💳 Payment Tracker</div>
+      <div class="pay-summary">
+        <div class="pay-chip bill"><div class="pay-chip-label">Month Bill</div><div class="pay-chip-val">₹${mBill.toFixed(2)}</div></div>
+        <div class="pay-chip paid"><div class="pay-chip-label">Paid</div><div class="pay-chip-val">₹${mPaid.toFixed(2)}</div></div>
+        <div class="pay-chip due"><div class="pay-chip-label">Due</div><div class="pay-chip-val">₹${mDue.toFixed(2)}</div></div>
+      </div>
+      <div class="pay-form">
+        <div class="entry-field">
+          <label>Date</label>
+          <input class="input-dark" type="date" id="pDate" value="${todayStr()}" style="width:140px;">
+        </div>
+        <div class="entry-field">
+          <label>Amount (₹)</label>
+          <input class="input-dark" type="number" id="pAmt" placeholder="500" min="0" step="1" style="width:110px;" onkeydown="if(event.key==='Enter')addPayment()">
+        </div>
+        <div class="entry-field">
+          <label>Note</label>
+          <input class="input-dark" type="text" id="pNote" placeholder="Cash / UPI" style="width:120px;">
+        </div>
+        <button class="btn-pay" onclick="addPayment()">✓ Record</button>
+      </div>
+      ${mP.length>0?`<div class="pay-history" style="margin-top:0.8rem;">${mPayHTML}</div>`:''}
+    </div>
+  </div>`;
+}
+
+/* ── Toast ── */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
